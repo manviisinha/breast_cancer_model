@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breast Cancer Prediction Model</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7fafc;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .section-title {
+            position: relative;
+            display: inline-block;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            bottom: -5px;
+            left: 0;
+            background-color: #6366f1;
+            border-radius: 9999px;
+        }
+        .loading-dots div {
+            animation: bounce 1s infinite;
+        }
+        .loading-dots div:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .loading-dots div:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex flex-col min-h-screen">
+
+    <header class="bg-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-indigo-400">Breast Cancer Prediction</h1>
+            <p class="text-indigo-200 mt-2">A Machine Learning Model Demo</p>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-12">
+        <section class="bg-white p-8 rounded-2xl shadow-xl mb-8">
+            <h2 class="text-3xl font-bold mb-6 section-title text-indigo-600">Patient Data Input</h2>
+            <p class="text-lg leading-relaxed text-gray-700 mb-6">
+                Enter the key features from the Wisconsin Diagnostic Breast Cancer (WDBC) dataset to get a prediction. This is a simplified, demonstrative model.
+            </p>
+
+            <form id="predictionForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="mean_radius" class="block text-sm font-medium text-gray-700">Mean Radius</label>
+                    <input type="number" id="mean_radius" step="0.01" value="17.99" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="concave_points_mean" class="block text-sm font-medium text-gray-700">Concave Points (Mean)</label>
+                    <input type="number" id="concave_points_mean" step="0.001" value="0.114" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="perimeter_worst" class="block text-sm font-medium text-gray-700">Perimeter (Worst)</label>
+                    <input type="number" id="perimeter_worst" step="0.01" value="122.8" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="texture_worst" class="block text-sm font-medium text-gray-700">Texture (Worst)</label>
+                    <input type="number" id="texture_worst" step="0.01" value="17.88" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div class="col-span-1 md:col-span-2 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mt-4">
+                    <button type="submit" class="w-full md:w-1/2 flex justify-center py-3 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
+                        Get Prediction
+                    </button>
+                    <button type="button" id="randomDataBtn" class="w-full md:w-1/2 flex justify-center py-3 px-6 border border-indigo-600 rounded-md shadow-sm text-sm font-medium text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
+                        Use Random Data
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Prediction Result Section -->
+        <section id="results" class="bg-white p-8 rounded-2xl shadow-xl hidden">
+            <h2 class="text-3xl font-bold mb-6 section-title text-indigo-600">Prediction Result</h2>
+            <div id="loadingIndicator" class="hidden flex justify-center items-center py-8">
+                <div class="loading-dots flex space-x-2">
+                    <div class="w-4 h-4 bg-indigo-500 rounded-full"></div>
+                    <div class="w-4 h-4 bg-indigo-500 rounded-full"></div>
+                    <div class="w-4 h-4 bg-indigo-500 rounded-full"></div>
+                </div>
+            </div>
+            <div id="predictionResult" class="text-center hidden">
+                <div id="resultText" class="text-5xl font-extrabold mb-4"></div>
+                <div id="resultIcon" class="mb-4"></div>
+                <p id="resultMessage" class="text-lg leading-relaxed text-gray-700 mb-4"></p>
+                <div id="explanation" class="mt-6 p-4 bg-gray-100 rounded-lg shadow-inner text-left">
+                    <h3 class="text-xl font-semibold mb-2">Simplified Explanation</h3>
+                    <p class="text-gray-600">The simulated model's prediction is based on the following general rules:</p>
+                    <ul class="list-disc list-inside mt-2 text-sm text-gray-600">
+                        <li>Tumors with larger mean radius and perimeter are more likely to be malignant.</li>
+                        <li>Higher values for concave points usually indicate a malignant tumor.</li>
+                    </ul>
+                    <p class="mt-4 text-xs italic text-gray-500">
+                        Disclaimer: This is a simplified demonstration and not a real medical diagnosis tool.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-900 text-white text-center py-6 mt-12 shadow-inner">
+        <p>&copy; 2024 Machine Learning for Breast Cancer Detection. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            predict();
+        });
+
+        document.getElementById('randomDataBtn').addEventListener('click', function() {
+            // Generate random, but realistic, values for a more dynamic demo
+            document.getElementById('mean_radius').value = (Math.random() * (22 - 10) + 10).toFixed(2);
+            document.getElementById('concave_points_mean').value = (Math.random() * (0.15 - 0.05) + 0.05).toFixed(3);
+            document.getElementById('perimeter_worst').value = (Math.random() * (150 - 60) + 60).toFixed(2);
+            document.getElementById('texture_worst').value = (Math.random() * (40 - 15) + 15).toFixed(2);
+        });
+
+        function predict() {
+            const form = document.getElementById('predictionForm');
+            const resultsSection = document.getElementById('results');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const predictionResult = document.getElementById('predictionResult');
+
+            // Hide previous results and show loading indicator
+            predictionResult.classList.add('hidden');
+            resultsSection.classList.remove('hidden');
+            loadingIndicator.classList.remove('hidden');
+
+            const meanRadius = parseFloat(document.getElementById('mean_radius').value);
+            const concavePointsMean = parseFloat(document.getElementById('concave_points_mean').value);
+            const perimeterWorst = parseFloat(document.getElementById('perimeter_worst').value);
+            const textureWorst = parseFloat(document.getElementById('texture_worst').value);
+
+            // Simulate API call delay
+            setTimeout(() => {
+                loadingIndicator.classList.add('hidden');
+                predictionResult.classList.remove('hidden');
+
+                let prediction;
+                let message;
+                let icon;
+
+                // Simple rule-based logic to simulate a machine learning model's output
+                // based on key features mentioned in the paper.
+                if (meanRadius > 16 || concavePointsMean > 0.1 || perimeterWorst > 115) {
+                    prediction = 'Malignant (M)';
+                    message = 'Based on the input features, the simulated model predicts a malignant tumor. Early and accurate diagnosis is critical.';
+                    icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>`;
+                } else {
+                    prediction = 'Benign (B)';
+                    message = 'Based on the input features, the simulated model predicts a benign tumor. This result should be confirmed by a medical professional.';
+                    icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>`;
+                }
+
+                document.getElementById('resultText').textContent = prediction;
+                document.getElementById('resultMessage').textContent = message;
+                document.getElementById('resultIcon').innerHTML = icon;
+            }, 1500); // 1.5 second delay
+        }
+    </script>
+</body>
+</html>
